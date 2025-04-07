@@ -37,6 +37,28 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 
+set(OMPL_INCLUDE_DIRS "/usr/local/include/ompl-1.6")
+include_directories(${OMPL_INCLUDE_DIRS})
+
+set(OMPL_LIBRARIES "/usr/local/lib/libompl.so" "/usr/local/lib/libompl_app.so")
+
+
+# Include project3_src headers
+include_directories(${CMAKE_SOURCE_DIR}/../project3_src/src)
+
+# Add the RTP source files
+set(PROJECT3_SRC_FILES
+    ${CMAKE_SOURCE_DIR}/../project3_src/src/RTP.cpp
+    ${CMAKE_SOURCE_DIR}/../project3_src/src/CollisionChecking.cpp
+)
+
+# Add RTP library to vamp
+add_library(RTP_LIB STATIC ${PROJECT3_SRC_FILES})
+target_include_directories(RTP_LIB SYSTEM PRIVATE ${OMPL_INCLUDE_DIRS})
+target_link_libraries(RTP_LIB PRIVATE ${OMPL_LIBRARIES} Eigen3::Eigen)
+
+
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -138,13 +160,53 @@ if(VAMP_BUILD_CPP_DEMO)
 endif()
 
 if(VAMP_BUILD_OMPL_DEMO)
-  find_package(ompl QUIET PATHS ${VAMP_OMPL_PATH})
+    find_package(ompl REQUIRED PATHS ${VAMP_OMPL_PATH} /usr/local/share/ompl/cmake)
+
+    if(ompl_FOUND)
+        message(STATUS "OMPL found at ${OMPL_DIR}")
+        message(STATUS "OMPL Include Dirs: ${OMPL_INCLUDE_DIRS}")
+        message(STATUS "OMPL Library Dirs: ${OMPL_LIBRARY_DIRS}")
+        message(STATUS "OMPL Libraries: ${OMPL_LIBRARIES}")
+        include_directories(${OMPL_INCLUDE_DIRS})
+        link_directories(${OMPL_LIBRARY_DIRS})
+
+        add_executable(vamp_ompl_integration scripts/cpp/ompl_integration.cc)
+        target_link_libraries(vamp_ompl_integration PRIVATE ${OMPL_LIBRARIES} Eigen3::Eigen)
+        target_include_directories(vamp_ompl_integration SYSTEM PRIVATE ${VAMP_EXT_INCLUDES})
+    else()
+        message(FATAL_ERROR "OMPL not found!")
+    endif()
+endif()
+
+
+if(VAMP_BUILD_OMPL_DEMO)
+  # find_package(ompl QUIET PATHS ${VAMP_OMPL_PATH})
+  find_package(ompl REQUIRED PATHS ${VAMP_OMPL_PATH} /usr/local/share/ompl/cmake)
 
   if(ompl_FOUND)
-    add_executable(vamp_ompl_integration scripts/cpp/ompl_integration.cc)
-    target_link_libraries(vamp_ompl_integration PRIVATE ompl::ompl Eigen3::Eigen)
-    target_include_directories(vamp_ompl_integration SYSTEM PRIVATE ${VAMP_EXT_INCLUDES})
+    message(STATUS "OMPL found at ${OMPL_DIR}")
+    message(STATUS "OMPL Include Dirs: ${OMPL_INCLUDE_DIRS}")
+    message(STATUS "OMPL Library Dirs: ${OMPL_LIBRARY_DIRS}")
+    message(STATUS "OMPL Libraries: ${OMPL_LIBRARIES}")
+    include_directories(${OMPL_INCLUDE_DIRS})
+    link_directories(${OMPL_LIBRARY_DIRS})
+
+    add_executable(vamp_ompl_integration_planners scripts/cpp/ompl_planners.cpp)
+    target_link_libraries(vamp_ompl_integration_planners PRIVATE ${OMPL_LIBRARIES} Eigen3::Eigen)
+    target_include_directories(vamp_ompl_integration_planners SYSTEM PRIVATE ${VAMP_EXT_INCLUDES})
   else()
     message(WARNING "OMPL not found! Cannot build OMPL demo.")
   endif()
 endif()
+
+add_executable(Assignment1 scripts/cpp/Assignment1.cpp)
+target_link_libraries(Assignment1 PRIVATE Eigen3::Eigen)
+target_include_directories(Assignment1 SYSTEM PRIVATE ${VAMP_EXT_INCLUDES})
+
+add_executable(Assignment2 scripts/cpp/Assignment2.cpp)
+target_link_libraries(Assignment2 PRIVATE Eigen3::Eigen)
+target_include_directories(Assignment2 SYSTEM PRIVATE ${VAMP_EXT_INCLUDES})
+
+add_executable(Assignment3 scripts/cpp/Assignment3.cpp)
+target_link_libraries(Assignment3 PRIVATE RTP_LIB ${OMPL_LIBRARIES} Eigen3::Eigen)
+target_include_directories(Assignment3 SYSTEM PRIVATE ${VAMP_EXT_INCLUDES} ${OMPL_INCLUDE_DIRS})

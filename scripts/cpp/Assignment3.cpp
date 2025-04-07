@@ -16,12 +16,8 @@
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/geometric/PathSimplifier.h>
 #include <ompl/geometric/planners/informedtrees/BITstar.h>
+#include "../../../project3_src/src/RTP.h"
 #include <ompl/util/Exception.h>
-
-#include <ompl/geometric/planners/prm/PRM.h>
-#include <ompl/geometric/planners/prm/PRMstar.h>
-
-
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
@@ -43,16 +39,16 @@ static const std::vector<std::array<float, 3>> problem = {
     {0.35, 0.35, 0.25},
     {0, 0.55, 0.25},
     {-0.55, 0, 0.25},
-    // {-0.35, -0.35, 0.25},
-    // {0, -0.55, 0.25},
-    // {0.35, -0.35, 0.25},
-    // {0.35, 0.35, 0.8},
-    // {0, 0.55, 0.8},
-    // {-0.35, 0.35, 0.8},
-    // {-0.55, 0, 0.8},
-    // {-0.35, -0.35, 0.8},
-    // {0, -0.55, 0.8},
-    // {0.35, -0.35, 0.8},
+    {-0.35, -0.35, 0.25},
+    {0, -0.55, 0.25},
+    {0.35, -0.35, 0.25},
+    {0.35, 0.35, 0.8},
+    {0, 0.55, 0.8},
+    {-0.35, 0.35, 0.8},
+    {-0.55, 0, 0.8},
+    {-0.35, -0.35, 0.8},
+    {0, -0.55, 0.8},
+    {0.35, -0.35, 0.8},
 };
 
 // Radius for obstacle spheres
@@ -141,69 +137,6 @@ struct VAMPMotionValidator : public ob::MotionValidator
         throw ompl::Exception("Not implemented!");
     }
 
-//     bool checkMotion(const ob::State *s1,
-//         const ob::State *s2,
-//         std::pair<ob::State *, double> &lastValid) const override
-//     {
-//     // This function does partial interpolation checks between s1 and s2.
-//     // Let OMPL compute how many sub-segments to test:
-//     unsigned int nd = si_->getStateSpace()->validSegmentCount(s1, s2);
-
-//     if (nd <= 1)
-//     {
-//         // Just do a single check of the full segment
-//         if (checkMotion(s1, s2))  // Calls the single-check version
-//         {
-//             if (lastValid.first)
-//                 si_->copyState(lastValid.first, s2);
-//             lastValid.second = 1.0;
-//             return true;
-//         }
-//         else
-//         {
-//             // If invalid, path is valid at fraction=0
-//             if (lastValid.first)
-//                 si_->copyState(lastValid.first, s1);
-//             lastValid.second = 0.0;
-//             return false;
-//         }
-//     }
-//     else
-//     {
-//         // We'll allocate a temporary state to hold the intermediate
-//         ompl::base::State *testState = si_->allocState();
-
-//         // Check each sub-segment
-//         for (unsigned int i = 1; i <= nd; ++i)
-//         {
-//         double t = (double)i / (double)nd;
-//         si_->getStateSpace()->interpolate(s1, s2, t, testState);
-
-//         // Check validity of each intermediate
-//         if (!si_->isValid(testState))
-//         {
-//             // The path fails at fraction t
-//             double fraction = (double)(i - 1) / (double)nd;
-//             if (lastValid.first)
-//             {
-//                 si_->getStateSpace()->interpolate(s1, s2, fraction, lastValid.first);
-//             }
-//             lastValid.second = fraction;
-//             si_->freeState(testState);
-//             return false;
-//         }
-//     }
-
-//     // If we finished the loop, the entire motion is valid
-//     if (lastValid.first)
-//         si_->copyState(lastValid.first, s2);
-//         lastValid.second = 1.0;
-//         si_->freeState(testState);
-//         return true;
-//     }
-// }
-
-
     const EnvironmentVector &env_v;
 };
 
@@ -211,7 +144,7 @@ auto main(int argc, char **) -> int
 {
     bool optimize = false;  // Flag - if true, will spend entire planning budget optimizing, otherwise exit on
                             // first solution
-    std::cout << "OMPL integration test" << std::endl;
+
     // Set optimize flag if another argument is provided
     if (argc == 2)
     {
@@ -228,8 +161,6 @@ auto main(int argc, char **) -> int
     environment.sort();
     auto env_v = EnvironmentVector(environment);
 
-    std::cout << "Environment created with " << env_v.spheres.size() << " spheres" << std::endl;
-    std::cout << "Start: ";
     // Create OMPL state space
     auto space = std::make_shared<ob::RealVectorStateSpace>(dimension);
 
@@ -251,7 +182,7 @@ auto main(int argc, char **) -> int
     }
 
     space->setBounds(bounds);
-    std::cout << "State space created with bounds: " << std::endl;
+
     // Create space information and set state validator and custom VAMP motion validator
     auto si = std::make_shared<ob::SpaceInformation>(space);
 
@@ -259,7 +190,6 @@ auto main(int argc, char **) -> int
     si->setMotionValidator(std::make_shared<VAMPMotionValidator>(si, env_v));
     si->setup();
 
-    std::cout << "State space information created" << std::endl;
     // Set start and goal
     ob::ScopedState<> start_ompl(space), goal_ompl(space);
     for (auto i = 0U; i < dimension; ++i)
@@ -282,13 +212,10 @@ auto main(int argc, char **) -> int
     }
 
     // Create planner - BITstar by default, but you can change this to use other geometric planners instead
-    auto planner = std::make_shared<og::BITstar>(si);
-    // auto planner = std::make_shared<og::PRM>(si);
+    auto planner = std::make_shared<og::RTP>(si);
 
     planner->setProblemDefinition(pdef);
     planner->setup();
-
-    std::cout << "Planning..." << std::endl;
 
     // Solve the problem
     auto start_time = std::chrono::steady_clock::now();
