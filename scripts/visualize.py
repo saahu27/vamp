@@ -51,12 +51,13 @@ def play_trajectory(robotId, trajectory, num_joints):
         # Step simulation to visualize the motion.
         for _ in range(240):  # simulate for 240 steps (~1 second at 240Hz)
             p.stepSimulation()
-            time.sleep(1./240.)
+            time.sleep(1./10000.)
 
 def main():
     # Define default file paths.
     default_urdf_path = "/home/sahruday/Desktop/ompl/vamp/resources/panda/panda.urdf"
     default_trajectory_path = "/home/sahruday/Desktop/ompl/vamp/solution/BITstar.csv"
+    default_folder_path = "/home/sahruday/Desktop/ompl/vamp/solution"
 
     # Parse command-line arguments.
     parser = argparse.ArgumentParser(
@@ -66,7 +67,7 @@ def main():
                         help="Path to the robot URDF file. Default: " + default_urdf_path)
     parser.add_argument('--trajectory', type=str, default=default_trajectory_path,
                         help="Path to a trajectory CSV file. Default: " + default_trajectory_path)
-    parser.add_argument('--folder', type=str, default=None,
+    parser.add_argument('--folder', type=str, default=default_folder_path,
                         help="If provided, run all trajectory CSV files in this folder instead of a single file.")
     args = parser.parse_args()
 
@@ -84,10 +85,20 @@ def main():
 
     # Define an array "problem" with sphere centers.
     problem = [
-        [1.0, 0.0, 0.5],
-        [0.0, 1.0, 0.5],
-        [-1.0, 0.0, 0.5],
-        [0.0, -1.0, 0.5]
+        [0.55, 0, 0.25],
+        [0.35, 0.35, 0.25],
+        [0, 0.55, 0.25],
+        [-0.55, 0, 0.25],
+        [-0.35, -0.35, 0.25],
+        [0, -0.55, 0.25],
+        [0.35, -0.35, 0.25],
+        [0.35, 0.35, 0.8],
+        [0, 0.55, 0.8],
+        [-0.35, 0.35, 0.8],
+        [-0.55, 0, 0.8],
+        [-0.35, -0.35, 0.8],
+        [0, -0.55, 0.8],
+        [0.35, -0.35, 0.8]
     ]
     sphere_radius = 0.1
 

@@ -1,0 +1,179 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <world name="default">
+    <!-- A model containing 14 spheres -->
+    <model name="spheres">
+      <static>true</static>
+      
+      <!-- Sphere 1 -->
+      <link name="sphere_1">
+        <pose>0.55 0 0.25 0 0 0</pose>
+        <visual name="visual_sphere_1">
+          <geometry>
+            <sphere>
+              <radius>0.05</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+      
+      <!-- Sphere 2 -->
+      <link name="sphere_2">
+        <pose>0.35 0.35 0.25 0 0 0</pose>
+        <visual name="visual_sphere_2">
+          <geometry>
+            <sphere>
+              <radius>0.05</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+      
+      <!-- Sphere 3 -->
+      <link name="sphere_3">
+        <pose>0 0.55 0.25 0 0 0</pose>
+        <visual name="visual_sphere_3">
+          <geometry>
+            <sphere>
+              <radius>0.05</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+      
+      <!-- Sphere 4 -->
+      <link name="sphere_4">
+        <pose>-0.55 0 0.25 0 0 0</pose>
+        <visual name="visual_sphere_4">
+          <geometry>
+            <sphere>
+              <radius>0.05</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+      
+      <!-- Sphere 5 -->
+      <link name="sphere_5">
+        <pose>-0.35 -0.35 0.25 0 0 0</pose>
+        <visual name="visual_sphere_5">
+          <geometry>
+            <sphere>
+              <radius>0.05</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+      
+      <!-- Sphere 6 -->
+      <link name="sphere_6">
+        <pose>0 -0.55 0.25 0 0 0</pose>
+        <visual name="visual_sphere_6">
+          <geometry>
+            <sphere>
+              <radius>0.05</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+      
+      <!-- Sphere 7 -->
+      <link name="sphere_7">
+        <pose>0.35 -0.35 0.25 0 0 0</pose>
+        <visual name="visual_sphere_7">
+          <geometry>
+            <sphere>
+              <radius>0.05</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+      
+      <!-- Sphere 8 -->
+      <link name="sphere_8">
+        <pose>0.35 0.35 0.8 0 0 0</pose>
+        <visual name="visual_sphere_8">
+          <geometry>
+            <sphere>
+              <radius>0.05</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+      
+      <!-- Sphere 9 -->
+      <link name="sphere_9">
+        <pose>0 0.55 0.8 0 0 0</pose>
+        <visual name="visual_sphere_9">
+          <geometry>
+            <sphere>
+              <radius>0.05</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+      
+      <!-- Sphere 10 -->
+      <link name="sphere_10">
+        <pose>-0.35 0.35 0.8 0 0 0</pose>
+        <visual name="visual_sphere_10">
+          <geometry>
+            <sphere>
+              <radius>0.05</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+      
+      <!-- Sphere 11 -->
+      <link name="sphere_11">
+        <pose>-0.55 0 0.8 0 0 0</pose>
+        <visual name="visual_sphere_11">
+          <geometry>
+            <sphere>
+              <radius>0.05</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+      
+      <!-- Sphere 12 -->
+      <link name="sphere_12">
+        <pose>-0.35 -0.35 0.8 0 0 0</pose>
+        <visual name="visual_sphere_12">
+          <geometry>
+            <sphere>
+              <radius>0.05</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+      
+      <!-- Sphere 13 -->
+      <link name="sphere_13">
+        <pose>0 -0.55 0.8 0 0 0</pose>
+        <visual name="visual_sphere_13">
+          <geometry>
+            <sphere>
+              <radius>0.05</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+      
+      <!-- Sphere 14 -->
+      <link name="sphere_14">
+        <pose>0.35 -0.35 0.8 0 0 0</pose>
+        <visual name="visual_sphere_14">
+          <geometry>
+            <sphere>
+              <radius>0.05</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+      
+    </model>
+    
+  </world>
+</sdf>
