@@ -1,14 +1,9 @@
 __all__ = [
-    "AnyPlanningResult",
+    "robots",
     "png_to_heightfield",
     "configure_robot_and_planner_with_kwargs",
     "problem_dict_to_vamp",
     "results_to_dict",
-    "sphere",
-    "ur5",
-    "panda",
-    "fetch",
-    "baxter",
     "Environment",
     "Attachment",
     "Sphere",
@@ -19,19 +14,22 @@ __all__ = [
     "PRMNeighborParams",
     "FCITSettings",
     "FCITNeighborParams",
+    "AORRTCSettings",
     "SimplifySettings",
     "SimplifyRoutine",
-    "filter_pointcloud"
+    "filter_pointcloud",
     ]
 
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple, Union, List
+import importlib
 
 from numpy import float32
 from numpy.typing import NDArray
 
 from .constants import *
 from . import _core
+from ._core import Sphere as Sphere
 from ._core import Cuboid as Cuboid
 from ._core import Cylinder as Cylinder
 from ._core import Attachment as Attachment
@@ -41,23 +39,16 @@ from ._core import PRMSettings as PRMSettings
 from ._core import RRTCSettings as RRTCSettings
 from ._core import FCITNeighborParams as FCITNeighborParams
 from ._core import FCITSettings as FCITSettings
+from ._core import AORRTCSettings as AORRTCSettings
 from ._core import SimplifyRoutine as SimplifyRoutine
 from ._core import SimplifySettings as SimplifySettings
-from ._core import Sphere as Sphere
-from ._core import baxter as baxter
-from ._core import fetch as fetch
-from ._core import panda as panda
-from ._core import sphere as sphere
-from ._core import ur5 as ur5
 from ._core import filter_pointcloud as filter_pointcloud
 
-AnyPlanningResult = Union[
-    sphere.PlanningResult,
-    ur5.PlanningResult,
-    panda.PlanningResult,
-    fetch.PlanningResult,
-    baxter.PlanningResult,
-    ]
+robots = _core.robots()
+
+for robot in robots:
+    globals()[robot] = getattr(_core, robot)
+    __all__.append(robot)
 
 
 def png_to_heightfield(
@@ -91,6 +82,9 @@ def configure_robot_and_planner_with_kwargs(robot_name: str, planner_name: str, 
         plan_settings = FCITSettings(
             FCITNeighborParams(robot_module.dimension(), robot_module.space_measure())
             )
+    elif planner_name == "aorrtc":
+        plan_settings = AORRTCSettings()
+        plan_settings.rrtc.range = ROBOT_RRT_RANGES[robot_name]
     else:
         raise NotImplementedError(f"Automatic setup for planner {planner_name} is not implemented yet!")
 
@@ -101,6 +95,14 @@ def configure_robot_and_planner_with_kwargs(robot_name: str, planner_name: str, 
         if hasattr(plan_settings, k):
             print(f"Setting planner - {k}: {v}")
             setattr(plan_settings, k, v)
+
+    # AORRTC Internal
+    for k, v in kwargs.items():
+        if "rrtc_" in k:
+            sk = k.replace("rrtc_", "")
+            if hasattr(plan_settings.rrtc, sk):
+                print(f"Setting planner - {sk}: {v}")
+                setattr(plan_settings.rrtc, sk, v)
 
     simp_settings = SimplifySettings()
 
@@ -124,6 +126,9 @@ def configure_robot_and_planner_with_kwargs(robot_name: str, planner_name: str, 
             if hasattr(sub_setting, sk):
                 print(f"Setting simplification - {sub} - {sk}: {v}")
                 setattr(sub_setting, sk, v)
+
+    if planner_name == "aorrtc":
+        plan_settings.simplify = simp_settings
 
     return robot_module, planner_func, plan_settings, simp_settings
 
@@ -178,8 +183,8 @@ def problem_dict_to_vamp(
 
 
 def results_to_dict(
-    planning_result: AnyPlanningResult,
-    simplification_result: Optional[AnyPlanningResult] = None,
+    planning_result,
+    simplification_result = None,
     ) -> Dict[str, Any]:
 
     try:

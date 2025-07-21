@@ -12,6 +12,7 @@ CPMAddPackage("gh:kavrakilab/nigh#97130999440647c204e0265d05a997dbd8da4e70")
 if(nigh_ADDED)
   add_library(nigh INTERFACE)
   target_include_directories(nigh INTERFACE $<BUILD_INTERFACE:${nigh_SOURCE_DIR}/src>)
+  set(NIGH_INCLUDE_DIRS ${nigh_SOURCE_DIR}/src)
   install(TARGETS nigh
         EXPORT nigh_TARGETS
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -30,6 +31,7 @@ CPMAddPackage("gh:orlp/pdqsort#b1ef26a55cdb60d236a5cb199c4234c704f46726")
 if(pdqsort_ADDED)
   add_library(pdqsort INTERFACE)
   target_include_directories(pdqsort INTERFACE $<BUILD_INTERFACE:${pdqsort_SOURCE_DIR}>)
+  set(PDQSORT_INCLUDE_DIRS ${pdqsort_SOURCE_DIR})
   install(TARGETS pdqsort
         EXPORT pdqsort_TARGETS
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

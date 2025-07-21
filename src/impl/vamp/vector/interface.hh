@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include <vamp/constants.hh>
 #include <vamp/vector/utils.hh>
 
 namespace vamp
@@ -423,24 +424,24 @@ namespace vamp
             return *d() + (other - *d()) * alpha;
         }
 
+        inline constexpr auto log() const noexcept -> D
+        {
+            return D(apply<S::template log<0>>(d()->data));
+        }
+
+        inline constexpr auto remove_corrupted() const noexcept -> D
+        {
+            auto mask = sub(*d());
+            return blend(zero_vector(), mask);
+        }
+
         template <
             typename ScalarT = typename S::ScalarT,
             typename =
                 std::enable_if_t<std::is_same_v<ScalarT, float> or std::is_same_v<ScalarT, double>, bool>>
         inline constexpr auto sin() const noexcept -> D
         {
-            const auto v_sq = *d() * abs();
-            const auto s_vsq = static_cast<typename S::ScalarT>(-0.478637850138) * v_sq;
-            const auto s_v = static_cast<typename S::ScalarT>(1.503684069359) * *d();
-            const auto p = s_vsq + s_v;
-            const auto abs_p = p.abs();
-            const auto p_2 = p * abs_p;
-            const auto p_3 = p_2 * abs_p;
-            const auto d_3 = static_cast<typename S::ScalarT>(0.011596870476) * p_3;
-            const auto d_2 = static_cast<typename S::ScalarT>(0.140024078368) * p_2;
-            const auto d_1 = static_cast<typename S::ScalarT>(0.665200679751) * p;
-
-            return d_3 + d_2 + d_1;
+            return D(apply<S::template sin<0>>(d()->data));
         }
 
         template <
@@ -689,8 +690,9 @@ namespace vamp
             const MaskT &mask,
             const D &alternative) noexcept -> D
         {
-            return D(apply_indexed<S::template gather_select<void>>(
-                idxs.data, mask.template to<D>().data, alternative.data, base));
+            return D(
+                apply_indexed<S::template gather_select<void>>(
+                    idxs.data, mask.template to<D>().data, alternative.data, base));
         }
 
     protected:
@@ -853,7 +855,12 @@ namespace vamp
 
                     num_scalars + (S::VectorWidth - (num_scalars % S::VectorWidth))>
                     rounded_size_buffer{0};
-                std::copy(scalar_data.begin(), scalar_data.end(), rounded_size_buffer.begin());
+
+                for (auto i = 0U; i < scalar_data.size(); ++i)
+                {
+                    rounded_size_buffer[i] = scalar_data[i];
+                }
+
                 Interface::pack(rounded_size_buffer.data());
             }
             else
@@ -913,6 +920,13 @@ namespace vamp
 
         // TODO: Make sure we always want filling behavior here
         constexpr Vector(typename S::ScalarT scalar_data) noexcept : Vector(Interface::fill(scalar_data))
+        {
+        }
+
+        // TODO: Make sure we always want filling behavior here
+        template <typename DT = typename S::ScalarT, typename = std::enable_if_t<not std::is_same_v<DT, int>>>
+        explicit constexpr Vector(int scalar_data) noexcept
+          : Vector(Interface::fill(typename S::ScalarT(scalar_data)))
         {
         }
 
