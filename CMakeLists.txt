@@ -45,14 +45,12 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(macros)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(CompilerSettings)
 include(FetchInitCPM)
-
 include(Dependencies)
-
-include(Python)
 
 # Create VAMP C++ library
 add_library(vamp_cpp INTERFACE)
@@ -66,7 +64,7 @@ target_include_directories(vamp_cpp
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/vamp>
 )
 
-target_link_libraries(vamp_cpp
+target_link_libraries_system(vamp_cpp
     INTERFACE
     Eigen3::Eigen
     nigh
@@ -86,6 +84,9 @@ set_target_properties(vamp_cpp PROPERTIES
 
 # Create alias target for modern CMake usage
 add_library(vamp::vamp ALIAS vamp_cpp)
+
+# Build Python bindings
+include(Python)
 
 # Install C++ library components (conditional for Python wheel builds)
 if(VAMP_INSTALL_CPP_LIBRARY)

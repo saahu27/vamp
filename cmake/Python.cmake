@@ -7,7 +7,11 @@ if(VAMP_BUILD_PYTHON_BINDINGS)
     REQUIRED COMPONENTS Interpreter Development.Module
     OPTIONAL_COMPONENTS Development.SABIModule)
 
+<<<<<<< HEAD
   CPMAddPackage("gh:wjakob/nanobind#358d452c314dbe8c07026d984ad8d5aa860f26fb")
+=======
+  CPMAddPackage("gh:wjakob/nanobind#9a25aed8a7edfe60ef9ad1c911e57667bc4916c4")
+>>>>>>> main
 
   # Check if Python is available
   if(NOT Python_FOUND)
@@ -135,4 +139,8 @@ if(VAMP_BUILD_PYTHON_BINDINGS)
       DESTINATION "${CMAKE_SOURCE_DIR}/src/vamp/_core"
     )
   endforeach()
+<<<<<<< HEAD
 endif() 
+=======
+endif() 
+>>>>>>> main
