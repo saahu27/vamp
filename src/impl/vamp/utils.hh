@@ -5,6 +5,10 @@
 #include <utility>
 #include <cstdint>
 
+#if defined(_WIN32)
+#include <malloc.h>
+#endif
+
 namespace vamp::utils
 {
     inline constexpr auto round_size(std::size_t size, std::size_t block) noexcept -> std::size_t
@@ -15,13 +19,31 @@ namespace vamp::utils
     inline bool is_aligned(const void *ptr, uintptr_t alignment) noexcept
     {
         auto iptr = reinterpret_cast<uintptr_t>(ptr);
-        return not(iptr % alignment);
+        return not (iptr % alignment);
     }
 
+    // MSVC UCRT has no aligned_alloc; use _aligned_malloc and pair with vector_free
+    // (_aligned_free). POSIX aligned_alloc pairs with free — vector_free abstracts that
+    // so unique_ptr deleters stay correct on Windows clang-cl.
     template <typename T, std::size_t alignment, std::size_t vector_size>
     inline auto vector_alloc(std::size_t n) noexcept -> T *
     {
-        return static_cast<T *>(aligned_alloc(alignment, sizeof(T) * round_size(n, vector_size)));
+        const std::size_t bytes = sizeof(T) * round_size(n, vector_size);
+#if defined(_WIN32)
+        // _aligned_malloc(size, alignment) — argument order is opposite aligned_alloc.
+        return static_cast<T *>(_aligned_malloc(bytes, alignment));
+#else
+        return static_cast<T *>(aligned_alloc(alignment, bytes));
+#endif
+    }
+
+    inline void vector_free(void *ptr) noexcept
+    {
+#if defined(_WIN32)
+        _aligned_free(ptr);
+#else
+        std::free(ptr);
+#endif
     }
 
     // Because ceil isn't constexpr until C++23 for some reason.....
