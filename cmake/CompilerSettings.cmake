@@ -1,12 +1,22 @@
+# Windows reports AMD64/ARM64; clang-cl uses an MSVC-style driver (vamprobots Windows ADR).
+set(VAMP_IS_X86_64 OFF)
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64|amd64)$")
+	set(VAMP_IS_X86_64 ON)
+endif()
+set(VAMP_CLANG_CL OFF)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+	set(VAMP_CLANG_CL ON)
+endif()
+
 # Allow users to override VAMP_ARCH (e.g., for Docker builds targeting different hardware)
 if(NOT DEFINED VAMP_ARCH)
 	if(EMSCRIPTEN)
 		# WebAssembly with SIMD128 support
 		set(VAMP_ARCH "-msimd128")
-	elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+	elseif(VAMP_IS_X86_64)
 		# Need explicit AVX2 for some MacOS clang versions
 		set(VAMP_ARCH "-march=native -mavx2")
-	elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+	elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
 		# ARM platforms (aarch64 / arm64)
 		set(VAMP_ARCH "-mcpu=native -mtune=native")
 		# Fix for GCC 13+ NEON vector type conversion errors
@@ -21,7 +31,7 @@ endif()
 # default fast args that work on all platforms
 set(VAMP_FAST_ARGS "-fno-math-errno -fno-signed-zeros -fno-trapping-math -fno-rounding-math -ffp-contract=fast")
 
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64") # x86 supports additional flags
+if(VAMP_IS_X86_64) # x86 supports additional flags
 	string(APPEND VAMP_FAST_ARGS " -fassociative-math")
 	if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang") # Clang supports additional fine-grained flags over GCC
 		string(APPEND VAMP_FAST_ARGS " -fno-honor-infinities -fno-honor-nans")
@@ -29,6 +39,20 @@ if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64") # x86 supports additional flags
 			string(APPEND VAMP_FAST_ARGS " -fapprox-func")
 		endif()
 	endif()
+endif()
+
+if(VAMP_CLANG_CL)
+	# clang-cl: GCC-style -f options must be forwarded with /clang:, and -Wall means -Weverything.
+	string(REPLACE " " ";" _vamp_fast_list "${VAMP_FAST_ARGS}")
+	set(VAMP_FAST_ARGS "")
+	foreach(_f IN LISTS _vamp_fast_list)
+		string(APPEND VAMP_FAST_ARGS " /clang:${_f}")
+	endforeach()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VAMP_ARCH} /W3 -Wno-ignored-attributes")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2 ${VAMP_FAST_ARGS}")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${VAMP_ARCH} /W3 -Wno-ignored-attributes")
+	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /O2 ${VAMP_FAST_ARGS}")
+	return()
 endif()
 
 # Vector types have their alignment hints ignored all over the place, so ignore these warnings.
